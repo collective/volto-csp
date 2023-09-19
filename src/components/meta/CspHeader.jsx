@@ -100,6 +100,23 @@ export function CspHeader(props) {
           console.log("Error reading critical css file", err);
         }
       }
+
+      const links = props.links.toComponent()
+      if (__SERVER__ && links) {
+        links.forEach((elem) => {
+          const fs = require('fs');
+          console.log('Processing css element:', elem)
+          if (elem.props.src) {
+            try {
+              const path = new URL(elem.href).pathname;
+              const data = fs.readFileSync('./build' + path, 'utf8');
+              styleVals.push(`'sha256-${createHash('sha256').update(data).digest('base64')}'`);
+            } catch (err) {
+              console.log("Error reading css file", err);
+            }
+          }
+        });
+      }
     } else {
         // In dev mode we will set 'unsafe-inline' as it is not feasible to generate
         // hashes (webpack 'style-src' provides a nonce function but requires
