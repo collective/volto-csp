@@ -122,7 +122,7 @@ class Html extends Component {
     return (
       <html lang="en">
         <head>
-          <CspHeader scripts={[windowEnvScript, CRITICAL_CSS_TEMPLATE, windowDataScript]} />
+          <CspHeader scripts={[windowEnvScript, CRITICAL_CSS_TEMPLATE, windowDataScript]} criticalCss={criticalCss} />
           <meta charSet="utf-8" />
           {head.base.toComponent()}
           {head.title.toComponent()}

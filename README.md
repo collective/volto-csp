@@ -52,6 +52,13 @@ Volto includes a number of inline scripts. Good practice is to not use the `unsa
 
 If `RAZZLE_CSP_DEFAULT_SRC` is set and no value for `RAZZLE_CSP_SCRIPT_SRC` is set. Then the addon will add the `script-src` directive as a duplicate of the `default-src` with the hashed inline scripts added.
 
+## Critical CSS
+
+Volto allows you to automatically include [critical css](https://2022.training.plone.org/effective-volto/development/criticalCSS.html) as inline styles.
+
+This addon will generate and add the necessary hashsum for the critical css to the `style-src` directive.
+
+The addon has not been configured to work with single page critical css. If you are setting `settings.serverConfig.readCricitalCss` the checksum will likely not match. It may be possible to integrate this kind of config in future, please raise an issue if you need make use of it.
 ## Development Mode
 
 If you set `RAZZLE_CSP_DEFAULT_SRC` or `RAZZLE_CSP_STYLE_SRC` and are running in development mode, this addon will automatically include the `'unsafe-inline'` to the `style-src` directive. This is because in development mode Volto adds a lot of inline styles which would otherwise be blocked.

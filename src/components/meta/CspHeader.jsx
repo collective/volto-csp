@@ -1,4 +1,4 @@
-
+import config from '@plone/volto/registry';
 
 const SPECIAL_CSP_ENVS = [
   'DEFAULT_SRC',
@@ -79,19 +79,36 @@ export function CspHeader(props) {
   }
 
   // style-src
-  if (process.env.RAZZLE_CSP_STYLE_SRC) {
-    // In dev mode we will set 'unsafe-inline' as it is not feasible to generate
-    // hashes (webpack 'style-src' provides a nonce function but requires
-    // extensive webpack config modification).
-    if (process.env.NODE_ENV !== 'production'){
-      metaTags.push(
-        `style-src   ${process.env.RAZZLE_CSP_STYLE_SRC} 'unsafe-inline'`
-      );
-    } else {
-      metaTags.push(
-        `style-src   ${process.env.RAZZLE_CSP_STYLE_SRC}`
-      );
+  if (process.env.RAZZLE_CSP_STYLE_SRC || process.env.RAZZLE_CSP_DEFAULT_SRC) {
+    const styleVals = [];
+    if (!process.env.RAZZLE_CSP_STYLE_SRC &&
+        process.env.RAZZLE_CSP_DEFAULT_SRC){
+      styleVals.push(...process.env.RAZZLE_CSP_DEFAULT_SRC.split(" "));
     }
+    const styleSrc = process.env.RAZZLE_CSP_STYLE_SRC ?
+    process.env.RAZZLE_CSP_STYLE_SRC + ' ' : '';
+
+    // In production mode with critical css we need to add the hash to style-src
+    if (process.env.NODE_ENV === 'production') {
+      if (__SERVER__  && props.criticalCss) {
+        const { settings } = config;
+        const fs = require('fs');
+        try {
+          const data = fs.readFileSync(settings.serverConfig.criticalCssPath, 'utf8');
+          styleVals.push(`'sha256-${createHash('sha256').update(data).digest('base64')}'`);
+        } catch (err) {
+          console.log("Error reading critical css file", err);
+        }
+      }
+    } else {
+        // In dev mode we will set 'unsafe-inline' as it is not feasible to generate
+        // hashes (webpack 'style-src' provides a nonce function but requires
+        // extensive webpack config modification).
+        styleVals.push('\'unsafe-inline\'');
+    }
+    metaTags.push(
+      `style-src   ${styleSrc}${styleVals.join(' ')}`
+    );
   }
 
   // Add the standard directives unmodified.
