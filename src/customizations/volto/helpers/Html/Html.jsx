@@ -11,6 +11,7 @@ import { join } from 'lodash';
 import BodyClass from '@plone/volto/helpers/BodyClass/BodyClass';
 import { runtimeConfig } from '@plone/volto/runtime_config';
 import config from '@plone/volto/registry';
+import { CspHeader } from '@plone-collective/volto-csp/components/meta/CspHeader';
 
 const CRITICAL_CSS_TEMPLATE = `function alter() {
   document.querySelectorAll("head link[rel='prefetch']").forEach(function(el) { el.rel = 'stylesheet'});
@@ -95,11 +96,33 @@ class Html extends Component {
       apiPath,
       publicURL,
     } = this.props;
+
+    // volto-csp is defining the inline scripts as constants so we can get a hashsum
+
+    // window.env inline script
+    const windowEnvScript = `window.env = ${serialize({
+      ...runtimeConfig,
+      // Seamless mode requirement, the client need to know where the API is located
+      // if not set in the API_PATH
+      ...(apiPath && {
+        apiPath,
+      }),
+      ...(publicURL && {
+        publicURL,
+      }),
+    })};`
+
+    // window.__data inline script
+    const windowDataScript = `window.__data=${serialize(
+      loadReducers(store.getState()),
+    )}`;
+
     const head = Helmet.rewind();
     const bodyClass = join(BodyClass.rewind(), ' ');
     return (
       <html lang="en">
         <head>
+          <CspHeader scripts={[windowEnvScript, CRITICAL_CSS_TEMPLATE, windowDataScript]} />
           <meta charSet="utf-8" />
           {head.base.toComponent()}
           {head.title.toComponent()}
@@ -108,18 +131,8 @@ class Html extends Component {
           {head.script.toComponent()}
 
           <script
-            dangerouslySetInnerHTML={{
-              __html: `window.env = ${serialize({
-                ...runtimeConfig,
-                // Seamless mode requirement, the client need to know where the API is located
-                // if not set in the API_PATH
-                ...(apiPath && {
-                  apiPath,
-                }),
-                ...(publicURL && {
-                  publicURL,
-                }),
-              })};`,
+             dangerouslySetInnerHTML={{
+              __html: windowEnvScript,
             }}
           />
 
@@ -184,9 +197,7 @@ class Html extends Component {
           <div id="sidebar" />
           <script
             dangerouslySetInnerHTML={{
-              __html: `window.__data=${serialize(
-                loadReducers(store.getState()),
-              )};`,
+              __html: windowDataScript,
             }}
             charSet="UTF-8"
           />
