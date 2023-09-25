@@ -147,4 +147,5 @@ export function CspHeader(props) {
       <meta httpEquiv="Content-Security-Policy"
             content={`\n\t${metaTags.join(';\n\t')};\n`}/>);
   }
+  return null
 }
