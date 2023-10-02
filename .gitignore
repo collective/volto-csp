@@ -93,5 +93,4 @@ src/addons/*
 !.yarn/sdks
 !.yarn/versions
 
-!src/addons/volto-effective23
-!src/addons/effective23_addon
+acceptance/.yarn
