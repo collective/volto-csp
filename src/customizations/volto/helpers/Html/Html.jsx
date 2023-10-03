@@ -88,14 +88,8 @@ class Html extends Component {
    * @returns {string} Markup for the component.
    */
   render() {
-    const {
-      extractor,
-      markup,
-      store,
-      criticalCss,
-      apiPath,
-      publicURL,
-    } = this.props;
+    const { extractor, markup, store, criticalCss, apiPath, publicURL } =
+      this.props;
 
     // volto-csp is defining the inline scripts as constants so we can get a hashsum
 
@@ -110,7 +104,7 @@ class Html extends Component {
       ...(publicURL && {
         publicURL,
       }),
-    })};`
+    })};`;
 
     // window.__data inline script
     const windowDataScript = `window.__data=${serialize(
@@ -122,7 +116,10 @@ class Html extends Component {
     return (
       <html lang="en">
         <head>
-          <CspHeader scripts={[windowEnvScript, CRITICAL_CSS_TEMPLATE, windowDataScript]} criticalCss={criticalCss} />
+          <CspHeader
+            scripts={[windowEnvScript, CRITICAL_CSS_TEMPLATE, windowDataScript]}
+            criticalCss={criticalCss}
+          />
           <meta charSet="utf-8" />
           {head.base.toComponent()}
           {head.title.toComponent()}
@@ -131,7 +128,7 @@ class Html extends Component {
           {head.script.toComponent()}
 
           <script
-             dangerouslySetInnerHTML={{
+            dangerouslySetInnerHTML={{
               __html: windowEnvScript,
             }}
           />
