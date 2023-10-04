@@ -43,6 +43,9 @@ const INVALID_CSP_ENVS = [
 ];
 
 export function CspHeader(props) {
+  if (!__SERVER__) {
+    return null;
+  }
   let metaTags = [];
   const { createHash } = require('crypto');
 
