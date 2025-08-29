@@ -42,7 +42,7 @@
     "stylelint-prettier": "4.0.2"
   },
   "peerDependencies": {
-    "@plone/volto": "^17.0.0"
+    "@plone/volto": "^16.0.0 || ^17.0.0"
   },
   "browser": {
     "crypto": false
