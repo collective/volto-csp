@@ -11,6 +11,7 @@ import { join } from 'lodash';
 import BodyClass from '@plone/volto/helpers/BodyClass/BodyClass';
 import { runtimeConfig } from '@plone/volto/runtime_config';
 import config from '@plone/volto/registry';
+import { CspHeader } from '@plone-collective/volto-csp/components/meta/CspHeader';
 
 const CRITICAL_CSS_TEMPLATE = `function alter() {
   document.querySelectorAll("head link[rel='prefetch']").forEach(function(el) { el.rel = 'stylesheet'});
@@ -79,7 +80,6 @@ class Html extends Component {
     store: PropTypes.shape({
       getState: PropTypes.func,
     }).isRequired,
-    nonce: PropTypes.string,
   };
 
   /**
@@ -88,46 +88,48 @@ class Html extends Component {
    * @returns {string} Markup for the component.
    */
   render() {
-    const {
-      extractor,
-      markup,
-      store,
-      criticalCss,
-      apiPath,
-      publicURL,
-      nonce: propNonce,
-    } = this.props;
+    const { extractor, markup, store, criticalCss, apiPath, publicURL } =
+      this.props;
 
-    // Get nonce from store (set by volto-csp middleware) or from props (backward compat)
-    const nonce = store.getState().csp?.nonce || propNonce;
+    // volto-csp is defining the inline scripts as constants so we can get a hashsum
+
+    // window.env inline script
+    const windowEnvScript = `window.env = ${serialize({
+      ...runtimeConfig,
+      // Seamless mode requirement, the client need to know where the API is located
+      // if not set in the API_PATH
+      ...(apiPath && {
+        apiPath,
+      }),
+      ...(publicURL && {
+        publicURL,
+      }),
+    })};`;
+
+    // window.__data inline script
+    const windowDataScript = `window.__data=${serialize(
+      loadReducers(store.getState()),
+    )}`;
 
     const head = Helmet.rewind();
     const bodyClass = join(BodyClass.rewind(), ' ');
     return (
       <html lang="en">
         <head>
+          <CspHeader
+            scripts={[windowEnvScript, CRITICAL_CSS_TEMPLATE, windowDataScript]}
+            criticalCss={criticalCss}
+          />
           <meta charSet="utf-8" />
           {head.base.toComponent()}
           {head.title.toComponent()}
           {head.meta.toComponent()}
           {head.link.toComponent()}
           {head.script.toComponent()}
-          {nonce && <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `window.__NONCE__ = ${serialize(nonce)}; __webpack_nonce__ = ${serialize(nonce)};` }} />}
+
           <script
-            nonce={nonce}
             dangerouslySetInnerHTML={{
-              __html: `window.env = ${serialize({
-                ...runtimeConfig,
-                // Seamless mode requirement, the client need to know where the API is located
-                // if not set in the API_PATH
-                ...(apiPath && {
-                  apiPath,
-                }),
-                ...(publicURL && {
-                  publicURL,
-                }),
-               
-              })};`,
+              __html: windowEnvScript,
             }}
           />
 
@@ -139,12 +141,11 @@ class Html extends Component {
             href="/apple-touch-icon.png"
           />
           <link rel="manifest" href="/site.webmanifest" />
-          <meta name="generator" content="NSW Digital Design System for Volto" />
+          <meta name="generator" content="Plone 6 - https://plone.org" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           {process.env.NODE_ENV === 'production' && criticalCss && (
             <style
-              nonce={nonce}
               dangerouslySetInnerHTML={{ __html: this.props.criticalCss }}
             />
           )}
@@ -166,7 +167,6 @@ class Html extends Component {
             criticalCss ? (
               <>
                 <script
-                  nonce={nonce}
                   dangerouslySetInnerHTML={{
                     __html: CRITICAL_CSS_TEMPLATE,
                   }}
@@ -184,7 +184,7 @@ class Html extends Component {
                 ))}
               </>
             ) : (
-                extractor.getStyleElements()
+              extractor.getStyleElements()
             )
           ) : undefined}
         </head>
@@ -193,21 +193,15 @@ class Html extends Component {
           <div id="main" dangerouslySetInnerHTML={{ __html: markup }} />
           <div id="sidebar" />
           <script
-            nonce={nonce}
             dangerouslySetInnerHTML={{
-              __html: `window.__data=${serialize(
-                loadReducers(store.getState()),
-              )};`,
+              __html: windowDataScript,
             }}
             charSet="UTF-8"
           />
-          {/* Set __webpack_nonce__ for CSP - webpack will read this for dynamically injected styles */}
-          {nonce && <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `window.__webpack_nonce__ = ${serialize(nonce)};` }} />}
           {/* Add the crossorigin while in development */}
           {this.props.extractScripts !== false
             ? extractor.getScriptElements().map((elem) =>
-              React.cloneElement(elem, {
-                  nonce: nonce,
+                React.cloneElement(elem, {
                   crossOrigin:
                     process.env.NODE_ENV === 'production' ? undefined : 'true',
                 }),
