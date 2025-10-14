@@ -1,0 +1,41 @@
+/**
+ * Icon component styles - CSP compliant
+ * NO inline styles - uses predefined CSS classes only
+ */
+
+/* Base icon styles */
+.icon {
+  width: auto;
+  fill: currentColor;
+  display: inline-block;
+}
+
+/* Icon size classes */
+.icon-18px {
+  height: 18px;
+}
+
+.icon-24px {
+  height: 24px;
+}
+
+.icon-30px {
+  height: 30px;
+}
+
+.icon-32px {
+  height: 32px;
+}
+
+.icon-36px {
+  height: 36px;
+}
+
+/* Icon color classes */
+.icon-white {
+  fill: white;
+}
+
+.icon-error {
+  fill: #e40166;
+}
