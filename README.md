@@ -20,6 +20,29 @@ Add the following lines to your `package.json`:
 
 and run `yarn build`
 
+### Required Server Configuration
+
+This addon requires a small modification to your customized `server.jsx` file to properly inject the CSP nonce into the Redux store.
+
+After creating the Redux store in your route handler, add the following lines:
+
+```javascript
+// Create a new Redux store instance
+const store = configureStore(initialState, history, api);
+
+persistAuthToken(store, req);
+
+// Set CSP nonce and header (from volto-csp addon)
+const { setCspHeader } = require('@plone-collective/volto-csp/middleware');
+const readCriticalCss =
+  config.settings.serverConfig.readCriticalCss || defaultReadCriticalCss;
+setCspHeader(req, res, store, readCriticalCss(req));
+```
+
+**Why is this needed?**
+
+The addon uses express middleware to generate a unique nonce for each request, but the nonce must be added to the Redux store *after* the store is created in the route handler. This ensures the nonce is available to the `Html` component during server-side rendering.
+
 ## Basic Usage
 
 This addon is enabled by setting one or more of the `RAZZLE_CSP_...` headers.
@@ -51,6 +74,31 @@ The full list of environment variables is below.
 Volto includes a number of inline scripts. Good practice is to not use the `unsafe-inline` source value for `script-src`. This package creates sha256 hashes of the inline scripts and includes those hash digests as sources in any `script-src` directive.
 
 If `RAZZLE_CSP_DEFAULT_SRC` is set and no value for `RAZZLE_CSP_SCRIPT_SRC` is set. Then the addon will add the `script-src` directive as a duplicate of the `default-src` with the hashed inline scripts added.
+
+## Nonce Support
+
+This addon automatically generates a unique cryptographic nonce for each request and includes it in the CSP header. The nonce is available through:
+
+### Redux Store
+
+The nonce is added to the Redux store via the `SET_CSP_NONCE` action and can be accessed at `state.csp.nonce`. This allows components to access the nonce during server-side rendering.
+
+### Environment Variable
+
+To enable nonce attributes on script and style tags, set:
+
+```
+RAZZLE_CSP_SET_NONCE=true
+```
+
+When enabled, the nonce will be:
+- Automatically added to the CSP header as `'nonce-<value>'`
+- Available via `window.__webpack_nonce__` for webpack's style-loader
+- Included in script and style tags during server-side rendering
+
+### Development Mode Support
+
+In development mode, this addon includes a patched version of webpack's style-loader runtime that properly reads the nonce from `window.__webpack_nonce__`, ensuring dynamically injected `<style>` tags include the nonce attribute.
 
 ## Critical CSS
 
