@@ -75,6 +75,16 @@ Volto includes a number of inline scripts. Good practice is to not use the `unsa
 
 If `RAZZLE_CSP_DEFAULT_SRC` is set and no value for `RAZZLE_CSP_SCRIPT_SRC` is set. Then the addon will add the `script-src` directive as a duplicate of the `default-src` with the hashed inline scripts added.
 
+## Report URI Support
+
+This addon supports sending CSP violation reports to a configured endpoint such as Sentry. See https://docs.sentry.io/platforms/javascript/security-policy-reporting/ and https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#reporting_directives for more information.
+
+To configure a reporting endpoint set `RAZZLE_CSP_REPORT` to the endpoint you want to send reports to.
+
+The addon will automatically configure the necesary CSP headers to send error reports.
+
+Note that at the time of writing `Content-Security-Policy-Report-Only` support is not available in the addon.
+
 ## Nonce Support
 
 This addon automatically generates a unique cryptographic nonce for each request and includes it in the CSP header. The nonce is available through:

@@ -50,6 +50,13 @@ const setCspHeader = (req, res, store, criticalCss = null) => {
   if (cspHeader) {
     res.setHeader('Content-Security-Policy', cspHeader);
   }
+
+  // If there is a report url, set the necessary headers.
+  const cspReport = process.env['RAZZLE_CSP_REPORT'];
+  if (cspReport) {
+    res.setHeader('Report-To', `{"group": "csp-endpoint", "max_age": 10886400, "endpoints":[{"url": "${cspReport}", "include_subdomains":true]}`);
+    res.setHeader('Reporting-Endpoints', `csp-endpoint="${cspReport}"`);
+  }
 };
 
 module.exports = cspMiddleware;
