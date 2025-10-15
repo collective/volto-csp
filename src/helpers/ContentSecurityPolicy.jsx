@@ -63,14 +63,17 @@ const devSource = __DEVELOPMENT__
   // default-src
   if (process.env.RAZZLE_CSP_DEFAULT_SRC) {
     metaTags.push(
-      `default-src ${nonceValue}${devSource}${process.env.RAZZLE_CSP_DEFAULT_SRC}`
+      `default-src ${devSource}${process.env.RAZZLE_CSP_DEFAULT_SRC}`
     );
   }
 
   // script-src
   if (process.env.RAZZLE_CSP_SCRIPT_SRC) {
+    const scriptWords = process.env.RAZZLE_CSP_SCRIPT_SRC.split(' ');
+    const hasUnsafeInline =
+      scriptWords.includes("'unsafe-inline'") || scriptWords.includes("'unsafe-hashes'");
     metaTags.push(
-      `script-src ${nonceValue}${devSource}${process.env.RAZZLE_CSP_SCRIPT_SRC}`
+      `script-src ${hasUnsafeInline ? '' : nonceValue}${devSource}${process.env.RAZZLE_CSP_SCRIPT_SRC}`
     );
   }
 
@@ -100,7 +103,10 @@ const devSource = __DEVELOPMENT__
   if (process.env.RAZZLE_CSP_STYLE_SRC || styleVals.length > 0) {
     const styleSrc = process.env.RAZZLE_CSP_STYLE_SRC ?
       process.env.RAZZLE_CSP_STYLE_SRC : '';
-    metaTags.push(`style-src ${nonceValue}${devSource}${styleSrc}${styleVals.join(' ')}`);
+    const styleWords = styleSrc.split(' ');
+    const hasUnsafeInline =
+      styleWords.includes("'unsafe-inline'") || styleWords.includes("'unsafe-hashes'");
+    metaTags.push(`style-src ${hasUnsafeInline ? '' : nonceValue}${devSource}${styleSrc}${styleVals.join(' ')}`);
   }
 
   // Add the standard directives unmodified.
