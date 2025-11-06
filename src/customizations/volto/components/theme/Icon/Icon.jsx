@@ -4,13 +4,16 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import './Icon.css';
+import { useSelector } from 'react-redux';
 
 const defaultSize = '36px';
 
+// Counter for generating unique class names
+let iconCounter = 0;
+
 /**
  * Component to display an SVG as Icon.
- * CSP-compliant version that uses ONLY CSS classes - NO inline styles.
+ * CSP-compliant version that uses nonce-based inline styles.
  */
 const Icon = ({
   name,
@@ -19,41 +22,57 @@ const Icon = ({
   className,
   title,
   onClick,
+  style = {},
   id,
   ariaHidden,
 }) => {
-  // Map size to CSS class
-  const sizeClass = size ? `icon-${size}` : `icon-${defaultSize}`;
+  // Get nonce from Redux store
+  const nonce = useSelector((state) => state.csp?.nonce);
 
-  // Map color to CSS class
-  let colorClass = '';
-  if (color === 'white') {
-    colorClass = 'icon-white';
-  } else if (color === '#e40166') {
-    colorClass = 'icon-error';
-  }
-  // currentColor is the default, no class needed
+  // Generate unique class name for this icon instance (stable across server/client)
+  const uniqueClass = React.useRef(`icon-${++iconCounter}`).current;
+
+  // Build dynamic styles
+  const dynamicStyles = {
+    height: size || defaultSize,
+    width: 'auto',
+    fill: color || 'currentColor',
+    ...style,
+  };
+
+  // Convert styles object to CSS string
+  const styleString = Object.entries(dynamicStyles)
+    .map(([key, value]) => {
+      // Convert camelCase to kebab-case
+      const cssKey = key.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+      return `${cssKey}: ${value};`;
+    })
+    .join(' ');
+
+  const cssRule = `.${uniqueClass} { ${styleString} }`;
 
   // Build final className
   const iconClassName = [
     'icon',
-    sizeClass,
-    colorClass,
+    uniqueClass,
     className,
   ].filter(Boolean).join(' ');
 
   return (
-    <svg
-      xmlns={name.attributes && name.attributes.xmlns}
-      viewBox={name.attributes && name.attributes.viewBox}
-      className={iconClassName}
-      onClick={onClick}
-      id={id}
-      aria-hidden={ariaHidden}
-      dangerouslySetInnerHTML={{
-        __html: title ? `<title>${title}</title>${name.content}` : name.content,
-      }}
-    />
+    <>
+      <style nonce={nonce} dangerouslySetInnerHTML={{ __html: cssRule }} />
+      <svg
+        xmlns={name.attributes && name.attributes.xmlns}
+        viewBox={name.attributes && name.attributes.viewBox}
+        className={iconClassName}
+        onClick={onClick}
+        id={id}
+        aria-hidden={ariaHidden}
+        dangerouslySetInnerHTML={{
+          __html: title ? `<title>${title}</title>${name.content}` : name.content,
+        }}
+      />
+    </>
   );
 };
 
