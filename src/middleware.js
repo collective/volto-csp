@@ -48,7 +48,14 @@ const setCspHeader = (req, res, store, criticalCss = null) => {
   });
 
   if (cspHeader) {
-    res.setHeader('Content-Security-Policy', cspHeader);
+    const headerName = process.env.RAZZLE_CSP_REPORT_ONLY
+      ? 'Content-Security-Policy-Report-Only'
+      : 'Content-Security-Policy';
+    res.setHeader(headerName, cspHeader);
+  }
+
+  if (process.env.RAZZLE_CSP_REPORT_ONLY && !process.env['RAZZLE_CSP_REPORT']) {
+    console.warn('[volto-csp] RAZZLE_CSP_REPORT_ONLY is set but RAZZLE_CSP_REPORT is not. Violations will be allowed but not reported.');
   }
 
   // If there is a report url, set the necessary headers.
@@ -56,6 +63,16 @@ const setCspHeader = (req, res, store, criticalCss = null) => {
   if (cspReport) {
     res.setHeader('Report-To', `{"group": "csp-endpoint", "max_age": 10886400, "endpoints":[{"url": "${cspReport}", "include_subdomains":true]}`);
     res.setHeader('Reporting-Endpoints', `csp-endpoint="${cspReport}"`);
+
+    // Set NEL header if either failure or success fraction env vars are set.
+    // NEL uses the same reporting group as CSP reporting.
+    if (process.env.RAZZLE_CSP_NEL_FAILURE || process.env.RAZZLE_CSP_NEL_SUCCESS) {
+      const failureFraction = process.env.RAZZLE_CSP_NEL_FAILURE || '1.0';
+      const successFraction = process.env.RAZZLE_CSP_NEL_SUCCESS || '0.0';
+      res.setHeader('NEL', `{"report_to": "csp-endpoint", "max_age": 10886400, "include_subdomains": true, "failure_fraction": ${failureFraction}, "success_fraction": ${successFraction}}`);
+    }
+  } else if (process.env.RAZZLE_CSP_NEL_FAILURE || process.env.RAZZLE_CSP_NEL_SUCCESS) {
+    console.warn('[volto-csp] RAZZLE_CSP_NEL_FAILURE/SUCCESS is set but RAZZLE_CSP_REPORT is not. NEL requires a reporting endpoint.');
   }
 };
 
