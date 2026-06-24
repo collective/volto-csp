@@ -8,10 +8,13 @@ const applyConfig = (config) => {
     csp: cspReducer,
   };
 
-  // Add CSP middleware to express
+  // Add CSP middleware to the front of the express chain so the nonce is set
+  // in res.locals before any other middleware can short-circuit the request
+  // (e.g. the @@download/@@images handlers erroring via next(err)), ensuring
+  // error responses still carry a CSP header.
   config.settings.expressMiddleware = [
-    ...(config.settings.expressMiddleware || []),
     cspMiddleware,
+    ...(config.settings.expressMiddleware || []),
   ];
 
   return config;

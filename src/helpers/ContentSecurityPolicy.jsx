@@ -142,6 +142,12 @@ const devSource = __DEVELOPMENT__
     }
   });
 
+  // Add Reporting
+  if (process.env['RAZZLE_CSP_REPORT']) {
+    metaTags.push(`report-uri ${process.env['RAZZLE_CSP_REPORT']}`);
+    metaTags.push(`report-to csp-endpoint`);
+  }
+
   if (metaTags.length > 0) {
     return metaTags.join('; ')+';';
   }
