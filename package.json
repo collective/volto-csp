@@ -45,6 +45,9 @@
     "@plone/volto": "^16.0.0 || ^17.0.0"
   },
   "browser": {
-    "crypto": false
+    "./src/helpers/ContentSecurityPolicy.jsx": false,
+    "./src/middleware.js": false,
+    "crypto": false,
+    "fs": false
   }
 }
