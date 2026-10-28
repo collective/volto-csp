@@ -1,0 +1,1 @@
+Fix the failing CI checks: format the code with the lint fixers, refresh `yarn.lock` and move the acceptance workflow to `actions/upload-artifact@v4`. @instification

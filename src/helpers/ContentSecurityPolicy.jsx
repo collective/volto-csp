@@ -1,5 +1,3 @@
-
-
 import config from '@plone/volto/registry';
 // eslint-disable-next-line no-unused-vars
 const SPECIAL_CSP_ENVS = ['DEFAULT_SRC', 'SCRIPT_SRC', 'STYLE_SRC'];
@@ -46,24 +44,25 @@ const INVALID_CSP_ENVS = [
 export function ContentSecurityPolicy(props) {
   const { nonce, criticalCss } = props;
 
-const devSource = __DEVELOPMENT__
-  ? ` http://localhost:${parseInt(process.env.PORT || '3000') + 1} ws://localhost:${parseInt(process.env.PORT || '3000') + 1} `
-  : '';
+  const devSource = __DEVELOPMENT__
+    ? ` http://localhost:${
+        parseInt(process.env.PORT || '3000') + 1
+      } ws://localhost:${parseInt(process.env.PORT || '3000') + 1} `
+    : '';
 
   if (!__SERVER__) {
     return null;
   }
-  let metaTags = []
-  let nonceValue = ''
+  let metaTags = [];
+  let nonceValue = '';
   if (process.env.RAZZLE_CSP_SET_NONCE) {
-      nonceValue = nonce ? `'nonce-${nonce}' ` : '';
+    nonceValue = nonce ? `'nonce-${nonce}' ` : '';
   }
-  
 
   // default-src
   if (process.env.RAZZLE_CSP_DEFAULT_SRC) {
     metaTags.push(
-      `default-src ${devSource}${process.env.RAZZLE_CSP_DEFAULT_SRC}`
+      `default-src ${devSource}${process.env.RAZZLE_CSP_DEFAULT_SRC}`,
     );
   }
 
@@ -71,9 +70,12 @@ const devSource = __DEVELOPMENT__
   if (process.env.RAZZLE_CSP_SCRIPT_SRC) {
     const scriptWords = process.env.RAZZLE_CSP_SCRIPT_SRC.split(' ');
     const hasUnsafeInline =
-      scriptWords.includes("'unsafe-inline'") || scriptWords.includes("'unsafe-hashes'");
+      scriptWords.includes("'unsafe-inline'") ||
+      scriptWords.includes("'unsafe-hashes'");
     metaTags.push(
-      `script-src ${hasUnsafeInline ? '' : nonceValue}${devSource}${process.env.RAZZLE_CSP_SCRIPT_SRC}`
+      `script-src ${hasUnsafeInline ? '' : nonceValue}${devSource}${
+        process.env.RAZZLE_CSP_SCRIPT_SRC
+      }`,
     );
   }
 
@@ -99,14 +101,20 @@ const devSource = __DEVELOPMENT__
       }
     }
   }
-  
+
   if (process.env.RAZZLE_CSP_STYLE_SRC || styleVals.length > 0) {
-    const styleSrc = process.env.RAZZLE_CSP_STYLE_SRC ?
-      process.env.RAZZLE_CSP_STYLE_SRC : '';
+    const styleSrc = process.env.RAZZLE_CSP_STYLE_SRC
+      ? process.env.RAZZLE_CSP_STYLE_SRC
+      : '';
     const styleWords = styleSrc.split(' ');
     const hasUnsafeInline =
-      styleWords.includes("'unsafe-inline'") || styleWords.includes("'unsafe-hashes'");
-    metaTags.push(`style-src ${hasUnsafeInline ? '' : nonceValue}${devSource}${styleSrc}${styleVals.join(' ')}`);
+      styleWords.includes("'unsafe-inline'") ||
+      styleWords.includes("'unsafe-hashes'");
+    metaTags.push(
+      `style-src ${
+        hasUnsafeInline ? '' : nonceValue
+      }${devSource}${styleSrc}${styleVals.join(' ')}`,
+    );
   }
 
   // Add the standard directives unmodified.
@@ -149,7 +157,7 @@ const devSource = __DEVELOPMENT__
   }
 
   if (metaTags.length > 0) {
-    return metaTags.join('; ')+';';
+    return metaTags.join('; ') + ';';
   }
   return '';
 }

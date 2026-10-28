@@ -112,7 +112,16 @@ class Html extends Component {
           {head.meta.toComponent()}
           {head.link.toComponent()}
           {head.script.toComponent()}
-          {nonce && <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `window.__NONCE__ = ${serialize(nonce)}; __webpack_nonce__ = ${serialize(nonce)};` }} />}
+          {nonce && (
+            <script
+              nonce={nonce}
+              dangerouslySetInnerHTML={{
+                __html: `window.__NONCE__ = ${serialize(
+                  nonce,
+                )}; __webpack_nonce__ = ${serialize(nonce)};`,
+              }}
+            />
+          )}
           <script
             nonce={nonce}
             dangerouslySetInnerHTML={{
@@ -126,7 +135,6 @@ class Html extends Component {
                 ...(publicURL && {
                   publicURL,
                 }),
-               
               })};`,
             }}
           />
@@ -139,7 +147,10 @@ class Html extends Component {
             href="/apple-touch-icon.png"
           />
           <link rel="manifest" href="/site.webmanifest" />
-          <meta name="generator" content="NSW Digital Design System for Volto" />
+          <meta
+            name="generator"
+            content="NSW Digital Design System for Volto"
+          />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           {process.env.NODE_ENV === 'production' && criticalCss && (
@@ -184,7 +195,7 @@ class Html extends Component {
                 ))}
               </>
             ) : (
-                extractor.getStyleElements()
+              extractor.getStyleElements()
             )
           ) : undefined}
         </head>
@@ -202,11 +213,18 @@ class Html extends Component {
             charSet="UTF-8"
           />
           {/* Set __webpack_nonce__ for CSP - webpack will read this for dynamically injected styles */}
-          {nonce && <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `window.__webpack_nonce__ = ${serialize(nonce)};` }} />}
+          {nonce && (
+            <script
+              nonce={nonce}
+              dangerouslySetInnerHTML={{
+                __html: `window.__webpack_nonce__ = ${serialize(nonce)};`,
+              }}
+            />
+          )}
           {/* Add the crossorigin while in development */}
           {this.props.extractScripts !== false
             ? extractor.getScriptElements().map((elem) =>
-              React.cloneElement(elem, {
+                React.cloneElement(elem, {
                   nonce: nonce,
                   crossOrigin:
                     process.env.NODE_ENV === 'production' ? undefined : 'true',

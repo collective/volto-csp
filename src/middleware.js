@@ -30,6 +30,7 @@ const setCspHeader = (req, res, store, criticalCss = null) => {
   const nonce = res.locals.cspNonce;
 
   if (!nonce) {
+    // eslint-disable-next-line no-console
     console.warn('[volto-csp] No nonce found in res.locals');
     return;
   }
@@ -44,7 +45,7 @@ const setCspHeader = (req, res, store, criticalCss = null) => {
   const { ContentSecurityPolicy } = require('./helpers/ContentSecurityPolicy');
   const cspHeader = ContentSecurityPolicy({
     nonce: nonce,
-    criticalCss: criticalCss
+    criticalCss: criticalCss,
   });
 
   if (cspHeader) {
@@ -55,24 +56,42 @@ const setCspHeader = (req, res, store, criticalCss = null) => {
   }
 
   if (process.env.RAZZLE_CSP_REPORT_ONLY && !process.env['RAZZLE_CSP_REPORT']) {
-    console.warn('[volto-csp] RAZZLE_CSP_REPORT_ONLY is set but RAZZLE_CSP_REPORT is not. Violations will be allowed but not reported.');
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[volto-csp] RAZZLE_CSP_REPORT_ONLY is set but RAZZLE_CSP_REPORT is not. Violations will be allowed but not reported.',
+    );
   }
 
   // If there is a report url, set the necessary headers.
   const cspReport = process.env['RAZZLE_CSP_REPORT'];
   if (cspReport) {
-    res.setHeader('Report-To', `{"group": "csp-endpoint", "max_age": 10886400, "endpoints":[{"url": "${cspReport}", "include_subdomains":true]}`);
+    res.setHeader(
+      'Report-To',
+      `{"group": "csp-endpoint", "max_age": 10886400, "endpoints":[{"url": "${cspReport}", "include_subdomains":true]}`,
+    );
     res.setHeader('Reporting-Endpoints', `csp-endpoint="${cspReport}"`);
 
     // Set NEL header if either failure or success fraction env vars are set.
     // NEL uses the same reporting group as CSP reporting.
-    if (process.env.RAZZLE_CSP_NEL_FAILURE || process.env.RAZZLE_CSP_NEL_SUCCESS) {
+    if (
+      process.env.RAZZLE_CSP_NEL_FAILURE ||
+      process.env.RAZZLE_CSP_NEL_SUCCESS
+    ) {
       const failureFraction = process.env.RAZZLE_CSP_NEL_FAILURE || '1.0';
       const successFraction = process.env.RAZZLE_CSP_NEL_SUCCESS || '0.0';
-      res.setHeader('NEL', `{"report_to": "csp-endpoint", "max_age": 10886400, "include_subdomains": true, "failure_fraction": ${failureFraction}, "success_fraction": ${successFraction}}`);
+      res.setHeader(
+        'NEL',
+        `{"report_to": "csp-endpoint", "max_age": 10886400, "include_subdomains": true, "failure_fraction": ${failureFraction}, "success_fraction": ${successFraction}}`,
+      );
     }
-  } else if (process.env.RAZZLE_CSP_NEL_FAILURE || process.env.RAZZLE_CSP_NEL_SUCCESS) {
-    console.warn('[volto-csp] RAZZLE_CSP_NEL_FAILURE/SUCCESS is set but RAZZLE_CSP_REPORT is not. NEL requires a reporting endpoint.');
+  } else if (
+    process.env.RAZZLE_CSP_NEL_FAILURE ||
+    process.env.RAZZLE_CSP_NEL_SUCCESS
+  ) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[volto-csp] RAZZLE_CSP_NEL_FAILURE/SUCCESS is set but RAZZLE_CSP_REPORT is not. NEL requires a reporting endpoint.',
+    );
   }
 };
 
