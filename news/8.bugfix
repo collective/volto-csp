@@ -1,0 +1,1 @@
+Fix `RAZZLE_CSP_WORKER_SRC` being ignored because of a `WORKDER_SRC` typo, so `worker-src` is now set. @instification
