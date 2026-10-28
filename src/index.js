@@ -1,5 +1,5 @@
-const cspMiddleware = require('./middleware');
 import cspReducer from './reducers/csp';
+const cspMiddleware = require('./middleware');
 
 const applyConfig = (config) => {
   // Add CSP reducer

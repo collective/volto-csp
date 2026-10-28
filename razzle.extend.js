@@ -2,9 +2,9 @@ const path = require('path');
 const webpack = require('webpack');
 
 const modify = (config, { target, dev }) => {
-
   // Only modify client-side builds in development
   if (target === 'web' && dev) {
+    // eslint-disable-next-line no-console
     console.log('[volto-csp] Adding CSP nonce support for style-loader');
 
     // Use NormalModuleReplacementPlugin to replace style-loader's runtime
@@ -12,8 +12,8 @@ const modify = (config, { target, dev }) => {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /style-loader\/dist\/runtime\/injectStylesIntoStyleTag\.js$/,
-        path.resolve(__dirname, './src/injectStylesIntoStyleTag.js')
-      )
+        path.resolve(__dirname, './src/injectStylesIntoStyleTag.js'),
+      ),
     );
   }
 

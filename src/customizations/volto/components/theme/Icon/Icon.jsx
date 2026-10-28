@@ -44,7 +44,10 @@ const Icon = ({
   const styleString = Object.entries(dynamicStyles)
     .map(([key, value]) => {
       // Convert camelCase to kebab-case
-      const cssKey = key.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+      const cssKey = key.replace(
+        /[A-Z]/g,
+        (match) => `-${match.toLowerCase()}`,
+      );
       return `${cssKey}: ${value};`;
     })
     .join(' ');
@@ -52,11 +55,9 @@ const Icon = ({
   const cssRule = `.${uniqueClass} { ${styleString} }`;
 
   // Build final className
-  const iconClassName = [
-    'icon',
-    uniqueClass,
-    className,
-  ].filter(Boolean).join(' ');
+  const iconClassName = ['icon', uniqueClass, className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <>
@@ -69,7 +70,9 @@ const Icon = ({
         id={id}
         aria-hidden={ariaHidden}
         dangerouslySetInnerHTML={{
-          __html: title ? `<title>${title}</title>${name.content}` : name.content,
+          __html: title
+            ? `<title>${title}</title>${name.content}`
+            : name.content,
         }}
       />
     </>

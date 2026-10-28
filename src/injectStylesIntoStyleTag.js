@@ -1,10 +1,9 @@
 // This is a patched version of:
 // style-loader/dist/runtime/injectStylesIntoStyleTag.js
 // which is injected in razzle.config.js
+/* global __webpack_nonce__ */
 
-"use strict";
-
-var isOldIE = function isOldIE() {
+var isOldIE = (function isOldIE() {
   var memo;
   return function memorize() {
     if (typeof memo === 'undefined') {
@@ -18,15 +17,18 @@ var isOldIE = function isOldIE() {
 
     return memo;
   };
-}();
+})();
 
-var getTarget = function getTarget() {
+var getTarget = (function getTarget() {
   var memo = {};
   return function memorize(target) {
     if (typeof memo[target] === 'undefined') {
       var styleTarget = document.querySelector(target); // Special case to return head of iframe instead of iframe itself
 
-      if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+      if (
+        window.HTMLIFrameElement &&
+        styleTarget instanceof window.HTMLIFrameElement
+      ) {
         try {
           // This will throw an exception if access to iframe is blocked
           // due to cross-origin restrictions
@@ -42,7 +44,7 @@ var getTarget = function getTarget() {
 
     return memo[target];
   };
-}();
+})();
 
 var stylesInDom = [];
 
@@ -67,13 +69,13 @@ function modulesToDom(list, options) {
     var item = list[i];
     var id = options.base ? item[0] + options.base : item[0];
     var count = idCountMap[id] || 0;
-    var identifier = "".concat(id, " ").concat(count);
+    var identifier = ''.concat(id, ' ').concat(count);
     idCountMap[id] = count + 1;
     var index = getIndexByIdentifier(identifier);
     var obj = {
       css: item[1],
       media: item[2],
-      sourceMap: item[3]
+      sourceMap: item[3],
     };
 
     if (index !== -1) {
@@ -83,7 +85,7 @@ function modulesToDom(list, options) {
       stylesInDom.push({
         identifier: identifier,
         updater: addStyle(obj, options),
-        references: 1
+        references: 1,
       });
     }
 
@@ -99,7 +101,8 @@ function insertStyleElement(options) {
 
   // CSP nonce support - patched to check window.__webpack_nonce__ as fallback
   if (typeof attributes.nonce === 'undefined') {
-    var nonce = typeof __webpack_nonce__ !== 'undefined' ? __webpack_nonce__ : null;
+    var nonce =
+      typeof __webpack_nonce__ !== 'undefined' ? __webpack_nonce__ : null;
 
     // Fallback to window.__webpack_nonce__ if bare global not accessible
     if (!nonce && typeof window !== 'undefined' && window.__webpack_nonce__) {
@@ -121,7 +124,9 @@ function insertStyleElement(options) {
     var target = getTarget(options.insert || 'head');
 
     if (!target) {
-      throw new Error("Couldn't find a style target. This probably means that the value for the 'insert' parameter is invalid.");
+      throw new Error(
+        "Couldn't find a style target. This probably means that the value for the 'insert' parameter is invalid.",
+      );
     }
 
     target.appendChild(style);
@@ -140,17 +145,20 @@ function removeStyleElement(style) {
 }
 /* istanbul ignore next  */
 
-
-var replaceText = function replaceText() {
+var replaceText = (function replaceText() {
   var textStore = [];
   return function replace(index, replacement) {
     textStore[index] = replacement;
     return textStore.filter(Boolean).join('\n');
   };
-}();
+})();
 
 function applyToSingletonTag(style, index, remove, obj) {
-  var css = remove ? '' : obj.media ? "@media ".concat(obj.media, " {").concat(obj.css, "}") : obj.css; // For old IE
+  var css = remove
+    ? ''
+    : obj.media
+    ? '@media '.concat(obj.media, ' {').concat(obj.css, '}')
+    : obj.css; // For old IE
 
   /* istanbul ignore if  */
 
@@ -184,11 +192,13 @@ function applyToTag(style, options, obj) {
   }
 
   if (sourceMap && typeof btoa !== 'undefined') {
-    css += "\n/*# sourceMappingURL=data:application/json;base64,".concat(btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))), " */");
+    css += '\n/*# sourceMappingURL=data:application/json;base64,'.concat(
+      btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))),
+      ' */',
+    );
   } // For old IE
 
   /* istanbul ignore if  */
-
 
   if (style.styleSheet) {
     style.styleSheet.cssText = css;
@@ -226,11 +236,15 @@ function addStyle(obj, options) {
   update(obj);
   return function updateStyle(newObj) {
     if (newObj) {
-      if (newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap) {
+      if (
+        newObj.css === obj.css &&
+        newObj.media === obj.media &&
+        newObj.sourceMap === obj.sourceMap
+      ) {
         return;
       }
 
-      update(obj = newObj);
+      update((obj = newObj));
     } else {
       remove();
     }
